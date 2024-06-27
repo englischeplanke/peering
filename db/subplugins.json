@@ -1,0 +1,7 @@
+{
+    "plugintypes": {
+        "peeringform": "mod\/peering\/form",
+        "peeringallocation": "mod\/peering\/allocation",
+        "peeringeval": "mod\/peering\/eval"
+    }
+}
