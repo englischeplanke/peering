@@ -213,7 +213,7 @@ $string['latesubmissions_help'] = 'If enabled, an author may submit their work a
 $string['latesubmissionsallowed'] = 'Late submissions are allowed';
 $string['legacyallocationplugincron'] = 'Legacy cron peering allocation';
 $string['maxbytes'] = 'Maximum submission attachment size';
-$string['modulename'] = 'peering';
+$string['modulename'] = 'Peering';
 $string['modulename_help'] = 'The peering activity module enables the collection, review and peer assessment of students\' work.
 
 Students can submit any digital content (files), such as word-processed documents or spreadsheets and can also type text directly into a field using the text editor.
