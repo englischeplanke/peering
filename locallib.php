@@ -4100,11 +4100,21 @@ class peering_user_plan implements renderable {
 
 
 
-
                 if ($phasecode == $peering->phase or in_array($phasecode, $openedbyusers )) {
+                //if ($phasecode == $peering->phase or in_array($phasecode, $openedbyusers )) {
                     if ($peering->phase == 20){
                         
                         $substograde = $this->get_submissions_to_grade();   
+
+
+                        foreach ($substograde as $id => $record) {
+                       
+                            if(intval($record->peeringid) != intval($this->peering->id)){
+                                unset($substograde[$id]);
+                            }
+         
+                        }
+                        
                         $numsubs = count($substograde);
 
                         if($numsubs > 0){
@@ -4190,10 +4200,13 @@ class peering_user_plan implements renderable {
         return $DB->get_records_sql($sql, $params);
 
 */
-        $sql = "SELECT * FROM  {peering_submissions} WHERE authorid != ".$USER->id;
-       
-        return  $DB->get_records_sql($sql);        
+        $sql = 'SELECT * 
+                  FROM  {peering_submissions} 
+                  WHERE  authorid != :userid';
         
+        $params = array('userid' => $USER->id);
+                
+        return  $DB->get_records_sql($sql, $params);       
 
     }
 
