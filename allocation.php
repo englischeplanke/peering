@@ -59,6 +59,7 @@ $initresult = $allocator->init();
 //
 // Output starts here
 //
+
 $actionbar = new \mod_peering\output\actionbar($url, $peering);
 
 $output = $PAGE->get_renderer('mod_peering');
@@ -75,4 +76,5 @@ if (is_null($initresult->get_status()) or $initresult->get_status() == peering_a
     echo $output->continue_button($peering->allocation_url($method));
     echo $output->container_end();
 }
+    
 echo $output->footer();

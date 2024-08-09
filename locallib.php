@@ -1349,6 +1349,27 @@ class peering {
         return $DB->get_records_sql($sql, $params);
     }
 
+
+    /**
+     * Get the complete information about the given assessment
+     *
+     * @param int $id Assessment ID
+     * @return stdclass
+     */
+    public function get_assessment_by_reviewerid($reviewerid) {
+        global $DB;
+
+        $sql = "SELECT a.*
+                  FROM {peering_assessments} a
+            INNER JOIN {peering_submissions} s ON (a.submissionid = s.id)
+                 WHERE a.reviewerid = :reviewerid AND  s.peeringid = :peeringid AND s.example = 0";
+
+        $params = array('reviewerid' => $reviewerid, 'peeringid' => $this->id);
+
+        return $DB->get_record_sql($sql, $params, MUST_EXIST);
+    }
+
+
     /**
      * Get the complete information about the given assessment
      *
@@ -1911,6 +1932,13 @@ class peering {
      */
     public function assessing_allowed($userid) {
 
+
+        if ($this->phase == self::PHASE_ASSESSMENT || $this->phase == self::PHASE_SUBMISSION) {
+            if(count($this->get_assessment_by_reviewerid($userid)) > 0){
+                return true;
+            }
+        }
+ 
         if ($this->phase != self::PHASE_ASSESSMENT) {
             // assessing is allowed in the assessment phase only, unless the user is a teacher
             // providing additional assessment during the evaluation phase
@@ -4098,13 +4126,13 @@ class peering_user_plan implements renderable {
                 var_dump($openedbyusers);
                 */
 
-
+   
 
                 if ($phasecode == $peering->phase or in_array($phasecode, $openedbyusers )) {
                 //if ($phasecode == $peering->phase or in_array($phasecode, $openedbyusers )) {
                     if ($peering->phase == 20){
-                        
-                        $substograde = $this->get_submissions_to_grade();   
+
+                        $substograde = $this->get_current_assessed_submissions();   
 
 
                         foreach ($substograde as $id => $record) {
@@ -4114,7 +4142,7 @@ class peering_user_plan implements renderable {
                             }
          
                         }
-                        
+                       
                         $numsubs = count($substograde);
 
                         if($numsubs > 0){
@@ -4123,6 +4151,10 @@ class peering_user_plan implements renderable {
                         }
 
                         
+
+                        $randomsubmissionid = $this->get_random_submission_to_grade();
+                        
+
                         $this->set_reviewer();
 
                         
@@ -4138,6 +4170,7 @@ class peering_user_plan implements renderable {
                     $phase->active = false;
                 }
             }
+            
 
             if (!isset($phase->actions)) {
                 $phase->actions = array();
@@ -4202,24 +4235,68 @@ class peering_user_plan implements renderable {
 */
         $sql = 'SELECT * 
                   FROM  {peering_submissions} 
+                  WHERE  authorid != :userid AND  peeringid = :peeringid AND id not in (select submissionid from {peering_assessments})';
+        
+        $params = array('userid' => $USER->id, 'peeringid' => $this->peering->id );
+                
+        return  $DB->get_records_sql($sql, $params);       
+
+    }
+
+    public function get_submission_to_grade() {
+        global $DB, $USER;
+       
+        
+        $sql = 'SELECT s.id
+                  FROM {peering_assessments} a
+            INNER JOIN {peering_submissions} s ON (a.submissionid = s.id)
+                 WHERE s.example = 0 ';
+ 
+
+        return $DB->get_records_sql($sql);
+
+        $sql = 'select {peering_submissions}.id from {peering_submissions} left join {peering_assessments} on {peering_submissions}.id = {peering_assessments}.submissionid WHERE mdl_peering_assessments.submissionid is NULL';
+                  
+        return  $DB->get_records_sql($sql);       
+
+    }
+
+    public function get_current_assessed_submissions() {
+
+        global $DB, $USER;
+
+        $sql = 'SELECT * 
+                  FROM  {peering_submissions} 
                   WHERE  authorid != :userid';
         
-        $params = array('userid' => $USER->id);
+        $params = array('userid' => $USER->id );
                 
         return  $DB->get_records_sql($sql, $params);       
 
     }
 
     public function get_random_submission_to_grade() {
+        
+     
         $authors = array();
-        $substograde = $this->get_submissions_to_grade();   
-        $num = count($substograde);
-
-        $hit = random_int(0, $num - 1);
-        $itt = 0;
-        $ret = 0;
+        $substograde = $this->get_submissions_to_grade();  
+        
+        
        
+        $num = count($substograde);
+    
+        //$curr_assessed = $this->get_current_assessed_submissions();
+        //var_dump($curr_assessed);
+        //if(in_array("8",$curr_assessed)){
+            //echo "test";
+        //}
+  
+        $ret = 0;
+        $itt = 0;
+        
+        
         if($num > 0){
+            $hit = random_int(0, $num - 1);
             foreach ($substograde as $subtograde) {
                 echo "wert".$itt ."-".$num ."-". $hit ;
                 if ($hit == $itt) {
@@ -4228,23 +4305,25 @@ class peering_user_plan implements renderable {
                 $itt += 1;
             }
         }
-
-        return $ret;      
+     
+        return $ret;     
+       
+       
     }
 
     public function get_submission_by_author( $randomsubmissionid ) {
         global $DB;
 
   
- /*
         $sql = "SELECT s.*
                   FROM {peering_submissions} s
             INNER JOIN {user} u ON (s.authorid = u.id)
              LEFT JOIN {user} g ON (s.gradeoverby = g.id)
-                 WHERE s.example = 0 AND s.peeringid = :peeringid AND s.authorid = :authorid";
-$params = array('peeringid' => $peeringid, 'authorid' => $authorid);
-                 */
-        $sql = "SELECT * FROM  {peering_submissions} WHERE id = :randomsubmissionid";
+                 WHERE s.example = 0 AND s.id = :randomsubmissionid ";
+
+        // $params = array('peeringid' => $peeringid, 'authorid' => $authorid);
+              
+        //$sql = "SELECT * FROM  {peering_submissions} WHERE id = :randomsubmissionid";
 
         $params = array('randomsubmissionid' => $randomsubmissionid);
 
@@ -4254,11 +4333,21 @@ $params = array('peeringid' => $peeringid, 'authorid' => $authorid);
     public function set_reviewer() {
         global $DB, $USER;
 
+
+
         $randomsubmissionid = $this->get_random_submission_to_grade();
 
-        $submission = $this->get_submission_by_author($randomsubmissionid );
+
+        if($randomsubmissionid > 0){
+  
+            $submission = $this->get_submission_by_author($randomsubmissionid );
         
-        $res = $this->peering->add_allocation($submission, $USER->id);
+            //$res = $this->peering->add_allocation($submission, $USER->id);
+            $res = $this->add_allocation($submission, $USER->id);
+
+        }
+
+
 /*
 
         if ($res == peering::ALLOCATION_EXISTS) {
@@ -4302,7 +4391,7 @@ $params = array('peeringid' => $peeringid, 'authorid' => $authorid);
         $assessment->weight                 = $weight;
         $assessment->feedbackauthorformat   = 1;
         $assessment->feedbackreviewerformat = 1;
-
+        
         return $DB->insert_record('peering_assessments', $assessment, true, $bulk);
     }
 

@@ -86,12 +86,15 @@ if ($assessmenteditable) {
     }
 }
 
+
 // load the grading strategy logic
 $strategy = $peering->grading_strategy_instance();
 
 if (is_null($assessment->grade) and !$assessmenteditable) {
+   
     $mform = null;
 } else {
+ 
     // Are there any other pending assessments to do but this one?
     if ($assessmenteditable) {
         $pending = $peering->get_pending_assessments_by_reviewer($assessment->reviewerid, $assessment->id);
@@ -160,6 +163,7 @@ if ($canoverridegrades or $cansetassessmentweight) {
 
 // output starts here
 $output = $PAGE->get_renderer('mod_peering');      // peering renderer
+
 echo $output->header();
 echo $output->heading(get_string('assessedsubmission', 'peering'), 3);
 
@@ -181,17 +185,20 @@ if (trim($peering->instructreviewers)) {
 $assessment = $peering->get_assessment_by_id($assessment->id);
 
 if ($isreviewer) {
+
     $options    = array(
         'showreviewer'  => true,
         'showauthor'    => has_capability('mod/peering:viewauthornames', $peering->context),
         'showform'      => $assessmenteditable or !is_null($assessment->grade),
         'showweight'    => true,
     );
+
     $assessment = $peering->prepare_assessment($assessment, $mform, $options);
     $assessment->title = get_string('assessmentbyyourself', 'peering');
     echo $output->render($assessment);
 
 } else {
+
     $options    = array(
         'showreviewer'  => has_capability('mod/peering:viewreviewernames', $peering->context),
         'showauthor'    => has_capability('mod/peering:viewauthornames', $peering->context),
@@ -201,6 +208,8 @@ if ($isreviewer) {
     $assessment = $peering->prepare_assessment($assessment, $mform, $options);
     echo $output->render($assessment);
 }
+
+
 
 if (!$assessmenteditable and $canoverridegrades) {
     $feedbackform->display();
