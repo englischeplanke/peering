@@ -1366,7 +1366,8 @@ class peering {
 
         $params = array('reviewerid' => $reviewerid, 'peeringid' => $this->id);
 
-        return $DB->get_record_sql($sql, $params, MUST_EXIST);
+
+        return $DB->get_records_sql($sql, $params, MUST_EXIST);
     }
 
 
@@ -1931,7 +1932,7 @@ class peering {
      * @return bool
      */
     public function assessing_allowed($userid) {
-
+    
 
         if ($this->phase == self::PHASE_ASSESSMENT || $this->phase == self::PHASE_SUBMISSION) {
             if(count($this->get_assessment_by_reviewerid($userid)) > 0){
