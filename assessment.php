@@ -62,7 +62,12 @@ $PAGE->navbar->add(get_string('assessingsubmission', 'peering'));
 $PAGE->set_secondary_active_tab('modulepage');
 
 $cansetassessmentweight = has_capability('mod/peering:allocate', $peering->context);
-$canoverridegrades      = has_capability('mod/peering:overridegrades', $peering->context);
+if($peering->autonomousgroups){
+    $canoverridegrades = true;
+}else{
+    $canoverridegrades = has_capability('mod/peering:overridegrades', $peering->context);
+}
+
 $isreviewer             = ($USER->id == $assessment->reviewerid);
 
 $peering->check_view_assessment($assessment, $submission);
@@ -210,8 +215,8 @@ if ($isreviewer) {
 }
 
 
-
 if (!$assessmenteditable and $canoverridegrades) {
+
     $feedbackform->display();
 }
 
