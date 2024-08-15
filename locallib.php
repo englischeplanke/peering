@@ -1366,8 +1366,9 @@ class peering {
 
         $params = array('reviewerid' => $reviewerid, 'peeringid' => $this->id);
 
-  
-        return $DB->get_records_sql($sql, $params;
+
+
+        return $DB->get_records_sql($sql, $params);
     }
 
 
